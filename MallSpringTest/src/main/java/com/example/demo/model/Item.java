@@ -12,102 +12,94 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="Item")
+@Table(name = "Item")
 public class Item {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int itemId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int itemId;
 
-    private String itemName;
+	private String itemName;
 
-    private BigDecimal itemPrice;
+	private BigDecimal itemPrice;
 
-    private String itemLocation;
+	private String itemLocation;
 
-    private int itemBrandId;
+	private String itemInfo;
 
-    private int itemCategoryId;
+	private boolean itemDeleteStatus = false;
 
-    private String itemInfo;
+	// 建立多對一關聯：每個 Item 都對應一個 Category
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "itemCategoryId", referencedColumnName = "categoryId")
+	private Category category;
 
-    private boolean itemDeleteStatus = false;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "itemBrandId", referencedColumnName = "brandId")
+	private Brand brand;
 
-    // 建立多對一關聯：每個 Item 都對應一個 Category
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "itemCategoryId", referencedColumnName = "categoryId", insertable = false, updatable = false)
-    private Category category;
+	// Getter 和 Setter
+	public int getItemId() {
+		return itemId;
+	}
 
-    // Getter 和 Setter
-    public int getItemId() {
-        return itemId;
-    }
+	public void setItemId(int itemId) {
+		this.itemId = itemId;
+	}
 
-    public void setItemId(int itemId) {
-        this.itemId = itemId;
-    }
+	public String getItemName() {
+		return itemName;
+	}
 
-    public String getItemName() {
-        return itemName;
-    }
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
+	}
 
-    public void setItemName(String itemName) {
-        this.itemName = itemName;
-    }
+	public BigDecimal getItemPrice() {
+		return itemPrice;
+	}
 
-    public BigDecimal getItemPrice() {
-        return itemPrice;
-    }
+	public void setItemPrice(BigDecimal itemPrice) {
+		this.itemPrice = itemPrice;
+	}
 
-    public void setItemPrice(BigDecimal itemPrice) {
-        this.itemPrice = itemPrice;
-    }
+	public String getItemLocation() {
+		return itemLocation;
+	}
 
-    public String getItemLocation() {
-        return itemLocation;
-    }
+	public void setItemLocation(String itemLocation) {
+		this.itemLocation = itemLocation;
+	}
 
-    public void setItemLocation(String itemLocation) {
-        this.itemLocation = itemLocation;
-    }
+	public String getItemInfo() {
+		return itemInfo;
+	}
 
-    public int getItemBrandId() {
-        return itemBrandId;
-    }
+	public void setItemInfo(String itemInfo) {
+		this.itemInfo = itemInfo;
+	}
 
-    public void setItemBrandId(int itemBrandId) {
-        this.itemBrandId = itemBrandId;
-    }
+	public boolean isItemDeleteStatus() {
+		return itemDeleteStatus;
+	}
 
-    public int getItemCategoryId() {
-        return itemCategoryId;
-    }
+	public void setItemDeleteStatus(boolean itemDeleteStatus) {
+		this.itemDeleteStatus = itemDeleteStatus;
+	}
 
-    public void setItemCategoryId(int itemCategoryId) {
-        this.itemCategoryId = itemCategoryId;
-    }
+	public Category getCategory() {
+		return category;
+	}
 
-    public String getItemInfo() {
-        return itemInfo;
-    }
+	public void setCategory(Category category) {
+		this.category = category;
+	}
 
-    public void setItemInfo(String itemInfo) {
-        this.itemInfo = itemInfo;
-    }
+	public Brand getBrand() {
+		return brand;
+	}
 
-    public boolean isItemDeleteStatus() {
-        return itemDeleteStatus;
-    }
-
-    public void setItemDeleteStatus(boolean itemDeleteStatus) {
-        this.itemDeleteStatus = itemDeleteStatus;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
+	public void setBrand(Brand brand) {
+		this.brand = brand;
+	}
 }

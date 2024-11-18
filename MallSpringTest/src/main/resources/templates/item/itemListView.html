@@ -6,7 +6,7 @@
 </head>
 <body>
 
-	<div th:replace="~{layout/navbar}"></div>
+	<div th:replace="~{layout/saHeader}"></div>
 
 
 	<main>
@@ -21,7 +21,7 @@
 								<span>我的商品</span>
 							</h6>
 							<li class="nav-item"><a class="nav-link"
-								href="<%=request.getContextPath()%>/list"> <svg
+								href="/item/itemList"> <svg
 										xmlns="http://www.w3.org/2000/svg" width="24" height="24"
 										viewBox="0 0 24 24" fill="none" stroke="currentColor"
 										stroke-width="2" stroke-linecap="round"
@@ -33,7 +33,7 @@
                     </svg> 我的商品
 							</a></li>
 							<li class="nav-item"><a class="nav-link"
-								href="<%=request.getContextPath()%>/new"> <svg
+								href="/item/addItem"> <svg
 										xmlns="http://www.w3.org/2000/svg" width="24" height="24"
 										viewBox="0 0 24 24" fill="none" stroke="currentColor"
 										stroke-width="2" stroke-linecap="round"
@@ -69,7 +69,7 @@
 								id="dropdownMenuOffset" data-bs-toggle="dropdown"
 								aria-expanded="false" data-bs-offset="10,20">分類</button>
 							<ul class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
-								<th:block th:each="c : ${categorylist}">
+								<th:block th:each="c : ${categoryList}">
 									<li><a href="#" class="dropdown-item"
 										th:text="${c.categoryName}" onclick="setCategory(this)"></a></li>
 								</th:block>
@@ -91,6 +91,7 @@
 									<th>商品價格</th>
 									<th>商品資訊</th>
 									<th>商品分類</th>
+									<th>商品品牌</th>
 									<th>商品狀態</th>
 									<th>動作</th>
 
@@ -106,6 +107,7 @@
 										<td><p th:text="${i.itemPrice}"></p></td>
 										<td><p th:text="${i.itemInfo}"></p></td>
 										<td><p th:text="${i.category.categoryName}"></p></td>
+										<td><p th:text="${i.brand.brandName}"></p></td>
 										<td><p th:text="${i.itemDeleteStatus ? '已刪除' : '未刪除'}"></p></td>
 										<td>
 											<!-- 編輯按鈕 --> <a class="btn btn-primary"
@@ -113,6 +115,7 @@
 											<a class="btn btn-danger"
 											th:href="@{/item/deleteItem(id=${i.itemId})}"
 											th:onclick="'return confirm(\'確定要刪除此項目嗎？\')'"> 刪除 </a>
+
 										</td>
 									</tr>
 								</th:block>

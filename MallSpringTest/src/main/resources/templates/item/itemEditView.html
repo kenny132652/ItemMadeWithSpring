@@ -6,7 +6,7 @@
 </head>
 <body>
 
-	<div th:replace="~{layout/navbar}"></div>
+	<div th:replace="~{layout/saHeader}"></div>
 
 
 	<main>
@@ -21,7 +21,7 @@
 								<span>我的商品</span>
 							</h6>
 							<li class="nav-item"><a class="nav-link"
-								href="<%=request.getContextPath()%>/list"> <svg
+								href="/item/itemList"> <svg
 										xmlns="http://www.w3.org/2000/svg" width="24" height="24"
 										viewBox="0 0 24 24" fill="none" stroke="currentColor"
 										stroke-width="2" stroke-linecap="round"
@@ -33,7 +33,7 @@
                     </svg> 我的商品
 							</a></li>
 							<li class="nav-item"><a class="nav-link"
-								href="<%=request.getContextPath()%>/new"> <svg
+								href="/item/addItem"> <svg
 										xmlns="http://www.w3.org/2000/svg" width="24" height="24"
 										viewBox="0 0 24 24" fill="none" stroke="currentColor"
 										stroke-width="2" stroke-linecap="round"
@@ -65,6 +65,7 @@
 					<div class="container-fluid" id="itemcontainer">
 						<form th:action="@{/item/editItemPost}" th:object="${item}"
 							method="post">
+							<input type="hidden" th:value="${item.itemId}" name="itemId">
 
 							<fieldset class="form-group">
 								<label>Item Name</label> <input type="text"
@@ -85,15 +86,46 @@
 							</fieldset>
 
 							<fieldset class="form-group">
-								<label>Brand</label> <input type="text"
-									th:value="${item.itemBrandId}" class="form-control"
-									name="itemBrand">
+								<!-- 顯示 Label -->
+								<label>Brand</label> <br>
+
+								<!-- 用容器包裹按鈕和下拉選單 -->
+								<div
+									style="margin-top: 5px; position: relative; display: inline-block; width: 100%; max-width: 300px;">
+									<!-- 按鈕 -->
+									<button type="button" class="btn btn-secondary dropdown-toggle"
+										id="dropdownBrandMenu" data-bs-toggle="dropdown"
+										aria-expanded="false" data-bs-offset="10,20"
+										style="width: 100%; text-align: left; height: 40px;">
+										<!-- 顯示當前品牌名稱 -->
+										<span id="selectedBrandName"> <!-- 如果有當前品牌，顯示它，否則顯示 "選擇品牌" -->
+											<span
+											th:text="${item.brand != null ? item.brand.brandName : '選擇品牌'}"></span>
+										</span>
+									</button>
+
+									<!-- 下拉選單 -->
+									<ul class="dropdown-menu" aria-labelledby="dropdownBrandMenu"
+										style="width: 100%; margin-top: 5px;">
+										<th:block th:each="b : ${brandList}">
+											<li><a href="#" class="dropdown-item"
+												th:text="${b.brandName}"
+												th:attr="data-brand-id=${b.brandId}"
+												onclick="setBrand(this)"></a></li>
+										</th:block>
+									</ul>
+								</div>
+
+								<!-- 隱藏輸入框，用於提交選中的品牌ID -->
+								<input type="hidden"
+									th:value="${item.brand != null ? item.brand.brandId : ''}"
+									class="form-control" name="brand.brandId">
 							</fieldset>
+
 
 							<fieldset class="form-group">
 								<!-- 顯示 Label -->
-								<label>Category</label>
-								<br>
+								<label>Category</label> <br>
 
 								<!-- 用容器包裹按鈕和下拉選單 -->
 								<div
@@ -102,12 +134,18 @@
 									<button type="button" class="btn btn-secondary dropdown-toggle"
 										id="dropdownMenuOffset" data-bs-toggle="dropdown"
 										aria-expanded="false" data-bs-offset="10,20"
-										style="width: 100%; text-align: left; height: 40px;">選擇分類</button>
+										style="width: 100%; text-align: left; height: 40px;">
+										<!-- 顯示當前分類名稱 -->
+										<span id="selectedCategoryName"> <!-- 如果有當前分類，顯示它，否則顯示 "選擇分類" -->
+											<span
+											th:text="${item.category != null ? item.category.categoryName : '選擇分類'}"></span>
+										</span>
+									</button>
 
 									<!-- 下拉選單 -->
 									<ul class="dropdown-menu" aria-labelledby="dropdownMenuOffset"
 										style="width: 100%; margin-top: 5px;">
-										<th:block th:each="c : ${categorylist}">
+										<th:block th:each="c : ${categoryList}">
 											<li><a href="#" class="dropdown-item"
 												th:text="${c.categoryName}"
 												th:attr="data-category-id=${c.categoryId}"
@@ -116,9 +154,12 @@
 									</ul>
 								</div>
 
+
 								<!-- 隱藏輸入框，用於提交選中的分類ID -->
-								<input type="hidden" th:value="${item.itemCategoryId}"
-									class="form-control" name="itemCategory">
+								<input type="hidden"
+									th:value="${item.category != null ? item.category.categoryId : ''}"
+									class="form-control" name="category.categoryId">
+
 							</fieldset>
 
 
@@ -129,6 +170,42 @@
 									th:value="${item.itemInfo}" class="form-control"
 									name="itemInfo">
 							</fieldset>
+
+							<fieldset class="form-group">
+								<label>商品狀態</label> <br>
+
+								<!-- 用容器包裹按鈕和下拉選單 -->
+								<div
+									style="margin-top: 5px; position: relative; display: inline-block; width: 100%; max-width: 300px;">
+									<!-- 按鈕 -->
+									<button type="button" class="btn btn-secondary dropdown-toggle"
+										id="dropdownDeleteStatusMenu" data-bs-toggle="dropdown"
+										aria-expanded="false" data-bs-offset="10,20"
+										style="width: 100%; text-align: left; height: 40px;">
+										<!-- 顯示當前商品狀態 -->
+										<span id="selectedDeleteStatus"> <span
+											th:text="${item.itemDeleteStatus ? '已刪除' : '未刪除'}"></span>
+										</span>
+									</button>
+
+									<!-- 下拉選單 -->
+									<ul class="dropdown-menu"
+										aria-labelledby="dropdownDeleteStatusMenu"
+										style="width: 100%; margin-top: 5px;">
+										<li><a href="#" class="dropdown-item" data-status="false"
+											onclick="setDeleteStatus(this)">未刪除</a></li>
+										<li><a href="#" class="dropdown-item" data-status="true"
+											onclick="setDeleteStatus(this)">已刪除</a></li>
+									</ul>
+								</div>
+
+								<!-- 隱藏輸入框，用於提交選中的刪除狀態 -->
+								<input type="hidden"
+									th:value="${item.itemDeleteStatus != null ? item.itemDeleteStatus : false}"
+									class="form-control" name="itemDeleteStatus">
+							</fieldset>
+
+
 							<br>
 							<button type="submit" class="btn btn-primary">送出</button>
 
@@ -143,17 +220,53 @@
 	</main>
 
 	<script>
-   function setCategory(element) {
-    // 獲取點擊項目的文字內容和分類ID
+function setCategory(element) {
     const categoryName = element.textContent || element.innerText;
     const categoryId = element.getAttribute("data-category-id");
 
-    // 更新按鈕的文字
-    document.getElementById("dropdownMenuOffset").textContent = categoryName;
+    // 更新按鈕顯示名稱
+    document.getElementById("selectedCategoryName").innerText = categoryName;
 
     // 更新隱藏輸入框的值
-    document.querySelector("input[name='itemCategory']").value = categoryId;
+    const hiddenInput = document.querySelector("input[name='category.categoryId']");
+    if (hiddenInput) {
+        hiddenInput.value = categoryId;
+    } else {
+        console.error("隱藏輸入框未找到，無法更新分類ID！");
+    }
 }
+
+function setBrand(element) {
+    const brandName = element.textContent || element.innerText;
+    const brandId = element.getAttribute("data-brand-id");
+
+    // 更新按鈕顯示名稱
+    document.getElementById("selectedBrandName").innerText = brandName;
+
+    // 更新隱藏輸入框的值
+    const hiddenInput = document.querySelector("input[name='brand.brandId']");
+    if (hiddenInput) {
+        hiddenInput.value = brandId;
+    } else {
+        console.error("隱藏輸入框未找到，無法更新品牌ID！");
+    }
+}
+function setDeleteStatus(element) {
+    const statusText = element.innerText; // 獲取顯示文本
+    const status = element.getAttribute("data-status"); // 獲取選中的狀態（"true" 或 "false"）
+
+    // 更新按鈕顯示名稱
+    document.getElementById("selectedDeleteStatus").innerText = statusText;
+
+    // 更新隱藏輸入框的值
+    const hiddenInput = document.querySelector("input[name='itemDeleteStatus']");
+    if (hiddenInput) {
+        hiddenInput.value = status; // 設置刪除狀態的值
+    } else {
+        console.error("隱藏輸入框未找到，無法更新刪除狀態！");
+    }
+}
+
 
 </script>
 
