@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -18,11 +19,21 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int categoryId;
-
     private String categoryName;
     private String categoryDescription;
+    
+    @Lob
+    private byte[] categoryPhoto;
 
-    // 反向映射，指示該 Category 對應多個 Item
+    public byte[] getCategoryPhoto() {
+		return categoryPhoto;
+	}
+
+	public void setCategoryPhoto(byte[] categoryPhoto) {
+		this.categoryPhoto = categoryPhoto;
+	}
+
+	// 反向映射，指示該 Category 對應多個 Item
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private List<Item> items;
 

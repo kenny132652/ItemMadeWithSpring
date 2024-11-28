@@ -14,8 +14,6 @@ import com.example.demo.model.CategoryRepository;
 @Service
 public class CategoryService {
     
-    @Autowired
-    private ItemRepository itemRepo;
     
     @Autowired
     private CategoryRepository categoryRepo; // 引入 CategoryRepository
@@ -24,6 +22,10 @@ public class CategoryService {
         return categoryRepo.findAll();
     }
 
-
-
+    public Category addCategory(Category category) {
+    	return categoryRepo.save(category);
+    }
+    
+    
+    
 }
