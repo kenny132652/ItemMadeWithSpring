@@ -1,14 +1,22 @@
 package com.example.demo.Service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.model.Item;
+import com.example.demo.model.ItemOption;
+import com.example.demo.model.ItemOptionRepositry;
+import com.example.demo.model.ItemPhoto;
 import com.example.demo.model.ItemRepository;
+import com.example.demo.model.ItemTransportation;
+import com.example.demo.model.TransportationRepository;
 import com.example.demo.model.Brand;
 import com.example.demo.model.BrandRepository;
 import com.example.demo.model.Category;
@@ -25,6 +33,12 @@ public class ItemService {
 
 	@Autowired
 	private BrandRepository brandRepo;
+	
+	@Autowired
+	private ItemOptionRepositry itemOptionRepo;
+	
+	@Autowired
+	private TransportationRepository transportationRepo;
 
 	public List<Item> findAllItem() {
 		return itemRepo.findAll();
@@ -39,78 +53,52 @@ public class ItemService {
 		return null;
 	}
 
-	// 修改 addItem 方法，根據 itemCategoryId 查找 Category
-	public Item addItem(String itemName, BigDecimal itemPrice, String itemLocation, int itemBrandId, int itemCategoryId,
-			String itemInfo) {
-
-		// 創建新的 Item 物件
-		Item item = new Item();
-		item.setItemName(itemName);
-		item.setItemPrice(itemPrice);
-		item.setItemLocation(itemLocation);
-		item.setItemInfo(itemInfo);
-
-		// 根據 itemBrandId 查找 Brand 並設置
-		Brand brand = brandRepo.findById(itemBrandId).orElse(null); // 使用 findById 查找 Category
-		if (brand != null) {
-			item.setBrand(brand); // 設置對應的 Brand
-		} else {
-			// 如果找不到對應的 Brand，可以根據需求處理
-			System.out.println("Brand not found with ID: " + itemCategoryId);
-		}
-
-		// 根據 itemCategoryId 查找 Category 並設置
-		Category category = categoryRepo.findById(itemCategoryId).orElse(null); // 使用 findById 查找 Category
-		if (category != null) {
-			item.setCategory(category); // 設置對應的 Category
-		} else {
-			// 如果找不到對應的 Category，可以根據需求處理
-			System.out.println("Category not found with ID: " + itemCategoryId);
-		}
-
-		return itemRepo.save(item);
-	}
 
 	public Item addItem(Item item) {
 		return itemRepo.save(item);
 	}
 
-	public Item editItem(Item editItem) {
-		Optional<Item> op = itemRepo.findById(editItem.getItemId());
-		System.out.println("Received Category ID: " + editItem.getCategory().getCategoryId());
+	public void addOrUpdateItem(Item item, List<Integer> transportationMethods, MultipartFile[] files, boolean isEdit) throws IOException {
+	    // 處理運送方式
+	    if (transportationMethods != null) {
+	        List<ItemTransportation> transportationList = transportationRepo.findAllById(transportationMethods);
+	        item.setTransportationMethods(transportationList);
+	    }
 
-		if (op.isPresent()) {
-			Item item = op.get();
-			item.setItemName(editItem.getItemName());
-			item.setItemPrice(editItem.getItemPrice());
-			item.setItemInfo(editItem.getItemInfo());
-			item.setItemLocation(editItem.getItemLocation());
-			item.setItemDeleteStatus(editItem.isItemDeleteStatus());
+	    // 處理圖片
+	    if (files != null && files.length > 0) {
+	        List<ItemPhoto> photoList = new ArrayList<>();
+	        for (MultipartFile file : files) {
+	            if (!file.isEmpty()) {
+	                ItemPhoto photo = new ItemPhoto();
+	                photo.setPhotoFile(file.getBytes());
+	                photo.setItem(item); // 關聯圖片到商品
+	                photoList.add(photo);
+	            }
+	        }
+	        item.setItemPhoto(photoList); // 只在有新圖片時更新
+	    } else if (isEdit) {
+	        // 編輯模式下，如果沒有提供新圖片，保留原圖片
+	        Item existingItem = findItemById(item.getItemId());
+	        if (existingItem != null) {
+	            item.setItemPhoto(existingItem.getItemPhoto());
+	        }
+	    }
 
-			if (editItem.getBrand() != null) {
-				Integer brandId = editItem.getBrand().getBrandId(); // 提取分類 ID
-				Brand brand = brandRepo.findById(brandId).orElse(null); // 查找分類
-				if (brand != null) {
-					item.setBrand(brand); // 更新分類
-				} else {
-					System.out.println("Brand not found with ID: " + brandId);
-				}
-			}
-			// 確保分類 ID 正確更新
-			if (editItem.getCategory() != null) {
-				Integer categoryId = editItem.getCategory().getCategoryId(); // 提取分類 ID
-				Category category = categoryRepo.findById(categoryId).orElse(null); // 查找分類
-				if (category != null) {
-					item.setCategory(category); // 更新分類
-				} else {
-					System.out.println("Category not found with ID: " + categoryId);
-				}
-			}
+	    // 處理選項
+	    if (item.getItemOption() != null) {
+	        for (ItemOption option : item.getItemOption()) {
+	            option.setItem(item); // 將選項關聯到商品
+	        }
+	    }
 
-			return itemRepo.save(item);
-		}
-		return null;
+	    // 保存商品與選項
+	    itemRepo.save(item);
+
+	    // 更新商品價格
+	    updateItemPrice(item);
 	}
+
 
 	public void deleteItemById(Integer id) {
 
@@ -118,4 +106,10 @@ public class ItemService {
 
 	}
 
+	public void updateItemPrice(Item item) {
+		BigDecimal minPrice = item.getItemOption().stream().map(ItemOption::getOptionPrice).min(BigDecimal::compareTo)
+				.orElse(BigDecimal.ZERO);
+		item.setItemPrice(minPrice);
+		itemRepo.save(item); // 保存更新到資料庫
+	}
 }

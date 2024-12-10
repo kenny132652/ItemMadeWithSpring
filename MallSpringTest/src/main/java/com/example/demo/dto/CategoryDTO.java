@@ -3,14 +3,14 @@ package com.example.demo.dto;
 public class CategoryDTO {
     private Integer categoryId;
     private String categoryName;
-    private String categoryDescription;
+    private String categoryInfo;
     private String categoryPhoto;  // 用來存放 Base64 編碼的圖片
 
     // 建構子
-    public CategoryDTO(Integer categoryId, String categoryName, String categoryDescription, String categoryPhoto) {
+    public CategoryDTO(Integer categoryId, String categoryName, String categoryInfo, String categoryPhoto) {
         this.categoryId = categoryId;
         this.categoryName = categoryName;
-        this.categoryDescription = categoryDescription;
+        this.categoryInfo = categoryInfo;
         this.categoryPhoto = categoryPhoto;
     }
 
@@ -31,12 +31,12 @@ public class CategoryDTO {
         this.categoryName = categoryName;
     }
 
-    public String getCategoryDescription() {
-        return categoryDescription;
+    public String getcategoryInfo() {
+        return categoryInfo;
     }
 
-    public void setCategoryDescription(String categoryDescription) {
-        this.categoryDescription = categoryDescription;
+    public void setcategoryInfo(String categoryInfo) {
+        this.categoryInfo = categoryInfo;
     }
 
     public String getCategoryPhoto() {

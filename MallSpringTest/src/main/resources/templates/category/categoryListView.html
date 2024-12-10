@@ -71,7 +71,7 @@
                                     <label for="edit-category-photos">分類照片</label>
                                     <input type="file" id="edit-category-photos" name="file" class="form-control"/>
                                     <img id="edit-category-photo-preview" src="" alt="圖片預覽"
-                                         style="width: 100px; height: 100px; display: none;"/>
+                                         style="width: 180px; height: 120px; display: none;"/>
                                 </div>
                                 <div>
                                     <label for="edit-category-desc">分類敘述(非必要)</label><br>
@@ -103,9 +103,9 @@
                             <td><p th:text="${c.categoryName}"></p></td>
                             <td>
                                 <img th:src="'data:image/jpeg;base64,' + ${c.categoryPhoto}"
-                                     alt="分類圖片" width="100px" height="100px"/>
+                                     alt="分類圖片" width="180px" height="120px"/>
                             </td>
-                            <td><p th:text="${c.categoryDescription}"></p></td>
+                            <td><p th:text="${c.categoryInfo}"></p></td>
                             <td>
                                 <!-- 編輯按鈕 -->
                                 <button type="button" class="btn btn-warning btn-sm"
@@ -158,7 +158,7 @@ function openEditCategoryModal(categoryId) {
             // 設置表單內容
             document.getElementById('edit-category-id').value = category.categoryId;
             document.getElementById('edit-category-name').value = category.categoryName;
-            document.getElementById('edit-category-desc').value = category.categoryDescription;
+            document.getElementById('edit-category-desc').value = category.categoryInfo;
             // 顯示圖片預覽
             if (category.categoryPhoto) {
                 document.getElementById('edit-category-photo-preview').style.display = "block";
@@ -228,9 +228,9 @@ function loadCategoryList() {
                     <td>${c.categoryId}</td>
                     <td>${c.categoryName}</td>
                     <td>
-                        <img alt="無法顯示" height="100px" width="100px" src="/api/category/photo?id=${c.categoryId}">
+                        <img alt="無法顯示" height="120px" width="180px" src="/api/category/photo?id=${c.categoryId}">
                     </td>
-                    <td>${c.categoryDescription}</td>
+                    <td>${c.categoryInfo}</td>
                     <td>
                         <button type="button" class="btn btn-warning btn-sm" onclick="openEditCategoryModal(${c.categoryId})">編輯</button>
                         <button type="button" class="btn btn-danger btn-sm" onclick="deleteCategory(${c.categoryId})">刪除</button>

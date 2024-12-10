@@ -74,7 +74,7 @@ public class CategoryController {
 
 		Category category = new Category();
 		category.setCategoryName(categoryName);
-		category.setCategoryDescription(categoryDesc);
+		category.setCategoryInfo(categoryDesc);
 		category.setCategoryPhoto(files.getBytes());
 
 		categoryRepo.save(category);
@@ -99,7 +99,7 @@ public class CategoryController {
 	            return new CategoryDTO(
 	                category.getCategoryId(),
 	                category.getCategoryName(),
-	                category.getCategoryDescription(),
+	                category.getCategoryInfo(),
 	                categoryPhoto
 	            );
 	        })
@@ -119,7 +119,7 @@ public class CategoryController {
 
 	    Category category = categoryOpt.get();
 	    category.setCategoryName(categoryName);
-	    category.setCategoryDescription(categoryDesc != null ? categoryDesc : category.getCategoryDescription());
+	    category.setCategoryInfo(categoryDesc != null ? categoryDesc : category.getCategoryInfo());
 	    
 	    if (file != null && !file.isEmpty()) {
 	        category.setCategoryPhoto(file.getBytes());
@@ -152,7 +152,7 @@ public class CategoryController {
 	    CategoryDTO categoryDTO = new CategoryDTO(
 	        category.getCategoryId(),
 	        category.getCategoryName(),
-	        category.getCategoryDescription(),
+	        category.getCategoryInfo(),
 	        categoryPhoto
 	    );
 	    return new ResponseEntity<>(categoryDTO, HttpStatus.OK);

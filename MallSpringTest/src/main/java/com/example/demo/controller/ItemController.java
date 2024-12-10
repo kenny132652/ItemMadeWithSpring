@@ -1,14 +1,22 @@
 package com.example.demo.controller;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.Service.BrandService;
 import com.example.demo.Service.CategoryService;
@@ -18,92 +26,115 @@ import com.example.demo.model.BrandRepository;
 import com.example.demo.model.Category;
 import com.example.demo.model.CategoryRepository;
 import com.example.demo.model.Item;
+import com.example.demo.model.ItemOption;
+import com.example.demo.model.ItemPhoto;
+import com.example.demo.model.ItemPhotoRepositry;
 import com.example.demo.model.ItemRepository;
+import com.example.demo.model.ItemTransportation;
+import com.example.demo.model.TransportationRepository;
 
 @Controller
 public class ItemController {
 
-	@Autowired
-	private ItemService itemService;
-	@Autowired
-	private CategoryService categoryService;
-	@Autowired
-	private BrandService brandService;
+    @Autowired
+    private ItemService itemService;
 
-//	@Autowired
-//	private ItemRepository itemRepo;
-//	@Autowired
-//	private CategoryRepository categoryRepo;
-//	
-	@Autowired
-	private BrandRepository brandRepo;
+    @Autowired
+    private CategoryService categoryService;
 
-	@GetMapping("/item/itemList")
-	public String itemList(Model model) {
+    @Autowired
+    private BrandService brandService;
 
-		List<Item> itemList = itemService.findAllItem();
-		List<Category> categoryList = categoryService.findAll();
-		List<Brand> brandList = brandRepo.findAll();
-		model.addAttribute("itemList", itemList);
-		model.addAttribute("categoryList", categoryList);
-		model.addAttribute("brandList", brandList);
-		return "/item/itemListView";
-	}
+    @Autowired
+    private TransportationRepository transportationRepo;
+    @Autowired
+    private ItemPhotoRepositry itemPhotoRepo;
+    
 
-	@GetMapping("/item/deleteItem")
-	public String deleteItem(@RequestParam Integer id) {
-	    try {
-	        itemService.deleteItemById(id);  // 假設刪除邏輯實現於此
-	        return "redirect:/item/itemList";  // 刪除後返回項目列表
-	    } catch (Exception e) {
-	        // 捕捉錯誤，顯示錯誤信息
-	        System.out.println("刪除商品失敗: " + e.getMessage());
-	        return "errorPage";  // 若有錯誤，可以導向錯誤頁面
-	    }
-	}
+    // 顯示商品列表
+    @GetMapping("/item/itemList")
+    public String itemList(Model model) {
+        List<Item> itemList = itemService.findAllItem();
+        model.addAttribute("itemList", itemList);
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("brandList", brandService.findAll());
+        return "/item/itemListView";
+    }
 
+    // 刪除商品
+    @GetMapping("/item/deleteItem")
+    public String deleteItem(@RequestParam Integer id) {
+        try {
+            itemService.deleteItemById(id);
+            return "redirect:/item/itemList";
+        } catch (Exception e) {
+            System.out.println("刪除商品失敗: " + e.getMessage());
+            return "errorPage";
+        }
+    }
 
-	@GetMapping("/item/addItem")
-	public String addItem(Model model) {
+    // 顯示新增商品頁面
+    @GetMapping("/item/addItem")
+    public String addItem(Model model) {
+        model.addAttribute("item", new Item());
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("transportationList", transportationRepo.findAll());
+        return "/item/itemAddView";
+    }
 
-		model.addAttribute("item", new Item());
-		model.addAttribute("categoryList", categoryService.findAll()); // 顯示所有分類
-		model.addAttribute("brandList", brandService.findAll()); // 顯示所有品牌
+    // 新增商品
+    @PostMapping("/item/add")
+    public String addItem(
+            @ModelAttribute Item item,
+            @RequestParam(required = false) List<Integer> transportationMethods,
+            @RequestParam(name = "files", required = false) MultipartFile[] files) throws IOException {
 
-		return "/item/itemAddView";
-	}
+        // 呼叫 Service 處理新增邏輯
+        itemService.addOrUpdateItem(item, transportationMethods, files, false);
+        return "redirect:/item/itemList";
+    }
 
-	@PostMapping("/item/addItemPost")
-	public String addItemPost(@ModelAttribute Item item) {	
+    // 顯示編輯商品頁面
+    @GetMapping("/item/editItem")
+    public String editItem(@RequestParam Integer id, Model model) {
+        Item item = itemService.findItemById(id);
+        model.addAttribute("item", item);
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("transportationList", transportationRepo.findAll());
+        return "/item/itemEditView";
+    }
+
+    // 編輯商品
+    @PostMapping("/item/editItemPost")
+    public String editItemPost(
+            @ModelAttribute Item item,
+            @RequestParam(required = false) List<Integer> transportationMethods,
+            @RequestParam(name = "files", required = false) MultipartFile[] files) throws IOException {
+
+        // 呼叫 Service 處理編輯邏輯
+        itemService.addOrUpdateItem(item, transportationMethods, files, true);
+        return "redirect:/item/itemList";
+    }
+    //顯示圖片
+	@GetMapping("/item/photo")
+	public ResponseEntity<?> downloadItemPhoto(@RequestParam Integer id) {
+		Optional<ItemPhoto> op = itemPhotoRepo.findById(id);
 		
-		itemService.addItem(item);
+		if(op.isEmpty()) {
+//			return new ResponseEntity<>(HttpStatusCode.valueOf(404));
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
 		
-		return "redirect:/item/itemList";
-	}
-
-	@GetMapping("/item/editItem")
-	public String editItem(@RequestParam Integer id, Model model) {
-
-		Item item = itemService.findItemById(id);
-
-		model.addAttribute("item", item);
-		model.addAttribute("categoryList", categoryService.findAll()); // 顯示所有分類
-		model.addAttribute("brandList", brandService.findAll()); // 顯示所有品牌
+		ItemPhoto itemPhoto = op.get();
+		byte[] image = itemPhoto.getPhotoFile();
 		
-		return "/item/itemEditView";
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.IMAGE_JPEG);
+		
+		                          // body , header  , http status code
+		return new ResponseEntity<byte[]>(image, headers, HttpStatus.OK);
 	}
-
-	@PostMapping("/item/editItemPost")
-	public String editItemPost(@ModelAttribute("item") Item postItem, Model model) {
-		System.out.println("Received Item Category: " + postItem.getCategory());
-		itemService.editItem(postItem);
-
-		Item item = itemService.findItemById(postItem.getItemId());
-
-		model.addAttribute("item", item);
-		model.addAttribute("okMsg", "修改成功!");
-
-		return "redirect:/item/itemList";
-	}
-
+	
 }
