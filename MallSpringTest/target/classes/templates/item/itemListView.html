@@ -26,7 +26,7 @@
 					<th>名稱</th>
 					<th>圖片</th>
 					<th>價格</th>
-					<th>位置</th>
+					<th>賣家ID</th>
 					<th>分類</th>
 					<th>品牌</th>
 					<th>建立日期</th>
@@ -46,7 +46,7 @@
 							<p th:if="${i.itemPhoto.isEmpty()}">無圖片</p></td>
 
 						<td><p th:text="${i.itemPrice}"></p></td>
-						<td><p th:text="${i.itemLocation}"></p></td>
+						<td><p th:text="${i.userInfo.userId}"></p></td>
 						<td><p th:text="${i.category.categoryName}"></p></td>
 						<td><p th:text="${i.brand.brandName}"></p></td>
 						<td><p th:text="${i.itemDate}"></p></td>

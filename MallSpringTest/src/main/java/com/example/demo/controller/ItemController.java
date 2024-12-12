@@ -91,7 +91,7 @@ public class ItemController {
             @RequestParam(name = "files", required = false) MultipartFile[] files) throws IOException {
 
         // 呼叫 Service 處理新增邏輯
-        itemService.addOrUpdateItem(item, transportationMethods, files, false);
+        itemService.addItem(item, transportationMethods, files);
         return "redirect:/item/itemList";
     }
 
@@ -112,9 +112,10 @@ public class ItemController {
             @ModelAttribute Item item,
             @RequestParam(required = false) List<Integer> transportationMethods,
             @RequestParam(name = "files", required = false) MultipartFile[] files) throws IOException {
-
+    	
+    	
         // 呼叫 Service 處理編輯邏輯
-        itemService.addOrUpdateItem(item, transportationMethods, files, true);
+        itemService.updateItem(item, transportationMethods, files);
         return "redirect:/item/itemList";
     }
     //顯示圖片

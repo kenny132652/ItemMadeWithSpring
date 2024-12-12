@@ -12,7 +12,11 @@
     <main class="container mt-5">
         <div class="col-12 col-lg-8 mx-auto">
             <h1 class="text-center mb-4">編輯商品</h1>
-            <form method="POST" action="/item/edit" enctype="multipart/form-data">
+            <form method="POST" action="/item/editItemPost" enctype="multipart/form-data">
+            
+				<input type="hidden" name="itemId" th:value="${item.itemId}" />
+
+                
                 <!-- 商品名稱 -->
                 <div class="form-group mb-3">
                     <label for="itemName" class="form-label">商品名稱:</label>

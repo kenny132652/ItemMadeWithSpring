@@ -63,12 +63,13 @@ public class Item {
     private Brand brand;
 
     // 商品圖片
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item", orphanRemoval = true)
     @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")
     private List<ItemPhoto> itemPhoto = new ArrayList<>();
+
     
     // 產品選項和庫存數量
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "item", orphanRemoval = true)
     private List<ItemOption> itemOption = new ArrayList<>();
     
     // 多對多關聯到運送方式
@@ -79,6 +80,11 @@ public class Item {
         inverseJoinColumns = @JoinColumn(name = "transportation_id") // 運送方式的外鍵
     )
     private List<ItemTransportation> transportationMethods = new ArrayList<>();
+    
+    //賣家ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="userId",nullable = false)
+    private UserInfo userInfo;
 
     // 在插入之前自動設定 itemDate
     @PrePersist

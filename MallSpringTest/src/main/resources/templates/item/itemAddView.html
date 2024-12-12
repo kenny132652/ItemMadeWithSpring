@@ -85,7 +85,7 @@
                         <input type="text" class="form-control" name="itemOption[0].optionName" placeholder="選項名稱" required>
                         <input type="number" class="form-control" name="itemOption[0].quantity" placeholder="數量" min="0" required>
                         <input type="number" class="form-control" name="itemOption[0].optionPrice" placeholder="價格" step="0.01">
-                        <button type="button" class="btn btn-danger" onclick="removeOption(this)">刪除</button>
+
                     </div>
                 </div>
                 <button type="button" class="btn btn-primary mb-3" onclick="addOption()">新增選項</button>
@@ -95,7 +95,14 @@
                     <label for="files" class="form-label">商品圖片:</label>
                     <input type="file" id="files" name="files" class="form-control" multiple>
                 </div>
+                
+				<!-- 賣家ID -->
+				<div class="mb-3">
+    				<label for="itemUserId" class="form-label">商品賣家ID:</label>
+  					<input type="text" id="itemUserId" name="userInfo.userId" class="form-control" required>
+				</div>
 
+                
                 <!-- 提交按鈕 -->
                 <div class="text-center">
                     <button type="submit" class="btn btn-success">提交</button>
