@@ -47,6 +47,8 @@ public class ItemService {
 
 	@Autowired
 	private TransportationRepository transportationRepo;
+	
+	
 
 	public List<Item> findAllItem() {
 		return itemRepo.findAll();

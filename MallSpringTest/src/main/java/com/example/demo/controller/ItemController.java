@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +33,19 @@ import com.example.demo.model.ItemPhotoRepositry;
 import com.example.demo.model.ItemRepository;
 import com.example.demo.model.ItemTransportation;
 import com.example.demo.model.TransportationRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+
+import jakarta.servlet.http.HttpSession;
+import jakarta.websocket.Session;
 
 @Controller
 public class ItemController {
-
+	
+	@Autowired
+	private ItemRepository itemRepo;
+	
     @Autowired
     private ItemService itemService;
 
@@ -137,5 +147,5 @@ public class ItemController {
 		                          // body , header  , http status code
 		return new ResponseEntity<byte[]>(image, headers, HttpStatus.OK);
 	}
-	
+
 }
