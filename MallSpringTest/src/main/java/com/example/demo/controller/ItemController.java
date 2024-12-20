@@ -2,9 +2,11 @@ package com.example.demo.controller;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.Service.BrandService;
@@ -109,12 +112,23 @@ public class ItemController {
     @GetMapping("/item/editItem")
     public String editItem(@RequestParam Integer id, Model model) {
         Item item = itemService.findItemById(id);
+        List<ItemPhoto> sortedPhotos = itemPhotoRepo.findByItem_ItemIdOrderBySortOrderAsc(id);
+        for(ItemPhoto i : sortedPhotos) {
+        System.out.println(i.getId());
+        }
+        // 將圖片轉換為 Base64 格式
+        List<String> base64Photos = sortedPhotos.stream()
+                .map(photo -> "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(photo.getPhotoFile()))
+                .collect(Collectors.toList());
+ 
         model.addAttribute("item", item);
+        model.addAttribute("base64Photos", base64Photos);
         model.addAttribute("categoryList", categoryService.findAll());
         model.addAttribute("brandList", brandService.findAll());
         model.addAttribute("transportationList", transportationRepo.findAll());
         return "/item/itemEditView";
     }
+
 
     // 編輯商品
     @PostMapping("/item/editItemPost")
@@ -146,6 +160,12 @@ public class ItemController {
 		
 		                          // body , header  , http status code
 		return new ResponseEntity<byte[]>(image, headers, HttpStatus.OK);
+	}
+	//回傳商品多個圖片照順序
+	@ResponseBody
+	@GetMapping("/api/item/itemPhoto")
+	public List<ItemPhoto> findItemPhotoByIdByOrder(@RequestParam int id){
+		return itemPhotoRepo.findByItem_ItemIdOrderBySortOrderAsc(id);
 	}
 
 }

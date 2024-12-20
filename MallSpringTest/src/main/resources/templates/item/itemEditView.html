@@ -24,7 +24,8 @@
 		<div class="col-12 col-lg-8 mx-auto">
 			<h1 class="text-center mb-4">編輯商品</h1>
 			<form method="POST" action="/item/editItemPost"
-				enctype="multipart/form-data">
+				enctype="multipart/form-data" onsubmit="prepareCroppedImages(event)"
+				novalidate>
 
 				<input type="hidden" name="itemId" th:value="${item.itemId}" />
 
@@ -132,10 +133,12 @@
 					onclick="addOption()">新增選項</button>
 
 				<!-- 商品圖片 -->
-				<div class="form-group mb-3">
+				<div class="mb-3">
 					<label for="files" class="form-label">商品圖片:</label> <input
-						type="file" id="files" name="files" class="form-control" multiple>
+						type="file" id="files" class="form-control" multiple
+						accept="image/*" onchange="handleFileUpload(event)">
 				</div>
+				<input type="hidden" id="croppedImages" name="files">
 
 				<!-- 圖片展示框 -->
 				<div id="preview-container" class="row g-2">
@@ -169,6 +172,18 @@
 						type="text" id="itemUserId" name="userInfo.userId"
 						class="form-control" th:value="${item.userInfo.userId}" required>
 				</div>
+
+				<!-- 商品狀態（刪除狀態） -->
+				<div class="form-group mb-3">
+					<label for="itemDeleteStatus" class="form-label">商品刪除狀態:</label> <select
+						id="itemDeleteStatus" name="itemDeleteStatus" class="form-select"
+						required>
+						<option value="false"
+							th:selected="${item.itemDeleteStatus == false}">未刪除</option>
+						<option value="true"
+							th:selected="${item.itemDeleteStatus == true}">已刪除</option>
+					</select>
+				</div>
 				<!-- 提交按鈕 -->
 				<div class="text-center">
 					<button type="submit" class="btn btn-success">提交</button>
@@ -178,32 +193,56 @@
 	</main>
 
 	<!-- 自定義 JS -->
-	<script>
-        let optionIndex = document.querySelectorAll("#options .input-group").length;
 
-        // 新增選項
-        function addOption() {
-            const optionsDiv = document.getElementById("options");
-            const newOption = document.createElement("div");
-            newOption.className = "input-group mb-2";
-            newOption.innerHTML = `
-                <input type="text" class="form-control" name="itemOption[${optionIndex}].optionName" placeholder="選項名稱" required>
-                <input type="number" class="form-control" name="itemOption[${optionIndex}].quantity" placeholder="數量" min="0" required>
-                <input type="number" class="form-control" name="itemOption[${optionIndex}].optionPrice" placeholder="價格" step="0.01">
-                <button type="button" class="btn btn-danger" onclick="removeOption(this)">刪除</button>
-            `;
-            optionsDiv.appendChild(newOption);
-            optionIndex++;
-        }
 
-        // 刪除選項
-        function removeOption(button) {
-            const optionDiv = button.parentElement;
-            optionDiv.remove();
-        }
-        let cropper;
+
+	<script th:inline="javascript">
+
+let optionIndex = 1;
+let cropper;
 let currentImageIndex;
 let fileDataArray = []; // 儲存圖片數據的陣列
+
+
+
+// 新增商品選項
+function addOption() {
+    const optionsDiv = document.getElementById("options");
+    const newOption = document.createElement("div");
+    newOption.className = "input-group mb-2";
+    newOption.innerHTML = `  
+        <input type="text" class="form-control" name="itemOption[${optionIndex}].optionName" placeholder="選項名稱" required>
+        <input type="number" class="form-control" name="itemOption[${optionIndex}].quantity" placeholder="數量" min="0" required>
+        <input type="number" class="form-control" name="itemOption[${optionIndex}].optionPrice" placeholder="價格" step="0.01">
+        <button type="button" class="btn btn-danger" onclick="removeOption(this)">刪除</button>
+    `;
+    optionsDiv.appendChild(newOption);
+    optionIndex++;
+}
+
+// 刪除商品選項
+function removeOption(button) {
+    const optionDiv = button.parentElement;
+    optionDiv.remove();
+}
+
+// 初始化圖片數據
+function initializeFileDataArray() {
+	/*<![CDATA[*/
+    var base64Photos = /*[[${base64Photos}]]*/ [];
+    console.log(base64Photos); // 打印 base64Photos
+    /*]]>*/	
+	
+    base64Photos.forEach((imageUrl, index) => {
+        fileDataArray.push({ file: null, imageUrl });
+    });
+    console.log(fileDataArray); // 在這裡打印 fileDataArray，檢查資料
+    updatePreview(); // 更新圖片預覽
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    initializeFileDataArray();
+});
 
 // 更新圖片預覽
 function updatePreview() {
@@ -217,7 +256,7 @@ function updatePreview() {
         previewWrapper.dataset.index = index;
 
         previewWrapper.innerHTML = `
-            <img src="${data.imageUrl}" class="img-fluid border rounded mb-2" 
+            <img src="${data.imageUrl}" class="img-fluid border rounded mb-2"
                 style="width: 100%; height: auto;" id="image-${index}">
             <div class="btn-group position-absolute top-0 end-0">
                 <button type="button" class="btn btn-warning btn-sm" onclick="cropImage(${index})">裁切</button>
@@ -227,15 +266,16 @@ function updatePreview() {
         previewContainer.appendChild(previewWrapper);
     });
 
-    // 初始化 Sortable.js (拖曳功能)
-    new Sortable(previewContainer, {
-        animation: 150,
-        onEnd(evt) {
-            const order = Array.from(previewContainer.children).map(item => item.dataset.index);
-            console.log("新的排序順序: ", order);
-        }
-    });
-}
+        // 啟用拖曳排序
+        new Sortable(previewContainer, {
+            animation: 150,
+            onEnd(evt) {
+                const newOrder = Array.from(previewContainer.children).map(item => parseInt(item.dataset.index));
+                fileDataArray = newOrder.map(index => fileDataArray[index]); // 同步 fileDataArray
+                updatePreview(); // 重新更新索引和排序後的預覽
+            }
+        });
+    }
 
 // 處理文件上傳
 function handleFileUpload(event) {
@@ -267,6 +307,7 @@ function cropImage(index) {
     const image = document.getElementById(`image-${index}`);
     const modalImage = document.getElementById('modalImage');
 
+    // 確保圖片加載後再初始化 cropper
     modalImage.onload = function () {
         if (cropper) {
             cropper.destroy(); // 銷毀舊的 cropper 實例
@@ -275,14 +316,13 @@ function cropImage(index) {
             aspectRatio: 1,          // 固定裁切比例 1:1
             viewMode: 2,             // 裁切圖片限制在容器內
             autoCropArea: 0.8,       // 裁切框佔容器的 80%
-            scalable: false,         // 禁止縮放圖片
-            zoomable: false,         // 禁止放大縮小
             responsive: true,        // 自適應大小
             dragMode: 'move',        // 圖片可移動
             cropBoxResizable: false  // 禁止改變裁切框大小
         });
     };
 
+    // 確保圖片在加載完成後設置到 modalImage
     modalImage.src = image.src; // 設置圖片來源
     const myModal = new bootstrap.Modal(document.getElementById('cropperModal'));
     myModal.show();
@@ -293,32 +333,60 @@ document.getElementById('cropImageBtn').addEventListener('click', () => {
     if (cropper) {
         const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 }); // 固定裁切大小
         const croppedImageUrl = canvas.toDataURL(); // 獲取裁切後的圖片數據
-        fileDataArray[currentImageIndex].imageUrl = croppedImageUrl; // 更新圖片數據
-        updatePreview(); // 重新渲染圖片預覽區域
 
+        // 更新 fileDataArray 中對應圖片的 imageUrl
+        fileDataArray[currentImageIndex].imageUrl = croppedImageUrl;
+
+        // 重新渲染圖片預覽區域
+        updatePreview();
+
+        // 關閉模態框
         const myModal = bootstrap.Modal.getInstance(document.getElementById('cropperModal'));
-        myModal.hide(); // 關閉模態框
+        myModal.hide();
     }
 });
 
-// 新增商品選項
-let optionCount = 1;
-function addOption() {
-    const optionsContainer = document.getElementById("options");
-    const newOption = document.createElement("div");
-    newOption.className = "input-group mb-2";
-    newOption.innerHTML = `
-        <input type="text" class="form-control" name="itemOption[${optionCount}].optionName" placeholder="選項名稱" required>
-        <input type="number" class="form-control" name="itemOption[${optionCount}].quantity" placeholder="數量" min="0" required>
-        <input type="number" class="form-control" name="itemOption[${optionCount}].optionPrice" placeholder="價格" step="0.01">
-    `;
-    optionsContainer.appendChild(newOption);
-    optionCount++;
+// 將 base64 編碼的圖片轉換為文件
+function base64ToFile(base64Data, filename) {
+    const byteCharacters = atob(base64Data.split(',')[1]); // 去掉Base64的頭部
+    const byteArrays = [];
+
+    for (let offset = 0; offset < byteCharacters.length; offset++) {
+        byteArrays.push(byteCharacters.charCodeAt(offset));
+    }
+
+    return new File([new Uint8Array(byteArrays)], filename, { type: 'image/jpeg' });
 }
 
-// 初始化上傳按鈕監聽
-document.getElementById("files").addEventListener("change", handleFileUpload);
-        
+// 假設裁切後的圖片數據儲存在 fileDataArray 中
+function prepareCroppedImages(event) {
+    event.preventDefault(); // 防止表單預設提交
+
+    // 創建 FormData 並附加裁切後的檔案
+    const formData = new FormData(event.target); // target 是 <form>
+    fileDataArray.forEach((data, index) => {
+        const file = base64ToFile(data.imageUrl, `cropped-${index}.jpg`);
+        formData.append("files", file); // 用相同名稱處理多張圖片
+    });
+
+    // 手動提交表單
+    const formElement = event.target;
+    const action = formElement.action; // 表單提交 URL
+    const method = formElement.method; // 表單提交方法
+
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, action);
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            alert("提交成功！");
+            window.location.href = "/item/itemList"; // 替換為商品列表頁面的URL
+        } else {
+            alert("提交失敗！");
+        }
+    };
+    xhr.send(formData);
+}
+
     </script>
 </body>
 </html>

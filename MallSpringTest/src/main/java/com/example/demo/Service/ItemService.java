@@ -74,20 +74,21 @@ public class ItemService {
 			item.setTransportationMethods(transportationList); // 設定商品的運送方式
 		}
 
-		// 處理圖片
-		if (files != null && files.length > 0) {
-			List<ItemPhoto> photoList = new ArrayList<>();
-			for (MultipartFile file : files) {
-				if (!file.isEmpty()) {
-					ItemPhoto photo = new ItemPhoto();
-					photo.setPhotoFile(file.getBytes()); // 儲存圖片檔案
-					photo.setItem(item); // 關聯圖片到商品
-					photoList.add(photo);
-				}
-			}
-			item.setItemPhoto(photoList); // 設定商品的圖片
-		}
-
+	    // 處理圖片
+	    if (files != null && files.length > 0) {
+	        List<ItemPhoto> photoList = new ArrayList<>();
+	        for (int i = 0; i < files.length; i++) {
+	            MultipartFile file = files[i];
+	            if (!file.isEmpty()) {
+	                ItemPhoto photo = new ItemPhoto();
+	                photo.setPhotoFile(file.getBytes());
+	                photo.setItem(item);
+	                photo.setSortOrder(i); // 設定圖片順序
+	                photoList.add(photo);
+	            }
+	        }
+	        item.setItemPhoto(photoList);
+	    }
 		// 處理選項
 		if (item.getItemOption() != null && !item.getItemOption().isEmpty()) {
 			for (ItemOption option : item.getItemOption()) {
@@ -118,17 +119,18 @@ public class ItemService {
 
 	    // 處理圖片
 	    if (files != null && files.length > 0) {
-	        // 有新圖片，刪除舊圖片並新增
-	        itemPhotoRepo.deleteByItem_ItemId(item.getItemId());
-	        for (MultipartFile file : files) {
+	        // 新增新圖片並設定排序
+	        for (int i = 0; i < files.length; i++) {
+	            MultipartFile file = files[i];
 	            if (!file.isEmpty()) {
 	                ItemPhoto photo = new ItemPhoto();
 	                photo.setPhotoFile(file.getBytes());
 	                photo.setItem(item);
-	                itemPhotoRepo.save(photo); // 直接保存圖片
+	                photo.setSortOrder(i); // 設定圖片順序
+	                itemPhotoRepo.save(photo);
 	            }
 	        }
-	    } 
+	    }
 
 	    // 更新價格
 	    updateItemPrice(item);
