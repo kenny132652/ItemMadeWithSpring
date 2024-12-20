@@ -35,7 +35,10 @@ import com.example.demo.model.ItemPhoto;
 import com.example.demo.model.ItemPhotoRepositry;
 import com.example.demo.model.ItemRepository;
 import com.example.demo.model.ItemTransportation;
+import com.example.demo.model.UserInfo;
+import com.example.demo.model.LoginBean;
 import com.example.demo.model.TransportationRepository;
+import com.example.demo.model.UserInfoRepositry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -62,6 +65,8 @@ public class ItemController {
     private TransportationRepository transportationRepo;
     @Autowired
     private ItemPhotoRepositry itemPhotoRepo;
+    @Autowired
+    private UserInfoRepositry userInfoRepo;
     
 
     // 顯示商品列表
@@ -167,5 +172,97 @@ public class ItemController {
 	public List<ItemPhoto> findItemPhotoByIdByOrder(@RequestParam int id){
 		return itemPhotoRepo.findByItem_ItemIdOrderBySortOrderAsc(id);
 	}
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	 使用者前台       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    // 顯示商品列表
+    @GetMapping("/memberCenter/item/itemList")
+    public String memberCenteItemList(Model model, HttpSession session) {
+        //LoginBean user = (LoginBean) session.getAttribute("user");
+        UserInfo user = userInfoRepo.getById(1);
+        
+    	
+        List<Item> itemList = itemService.findAllActiveItemOwnByUserId(user.getUserId());
+        model.addAttribute("userId",user.getUserId());
+        model.addAttribute("itemList", itemList);
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("brandList", brandService.findAll());
+        return "/item/userItemListView";
+    }
+
+    // 刪除商品
+    @GetMapping("/memberCenter/item/deleteItem")
+    public String memberCenteDeleteItem(@RequestParam Integer id) {
+        try {
+            Item item=itemService.findItemById(id);
+            item.setItemDeleteStatus(true);
+            return "redirect:/memberCenter/item/itemList";
+        } catch (Exception e) {
+            System.out.println("刪除商品失敗: " + e.getMessage());
+            return "errorPage";
+        }
+    }
+
+    // 顯示新增商品頁面
+    @GetMapping("/memberCenter/item/addItem")
+    public String memberCenteAddItem(Model model, HttpSession session) {
+        LoginBean user = (LoginBean) session.getAttribute("user");
+        model.addAttribute("userId",user.getUserId());
+        model.addAttribute("item", new Item());
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("transportationList", transportationRepo.findAll());
+        return "/item/userItemAddView";
+    }
+
+    // 新增商品
+    @PostMapping("/memberCenter/item/add")
+    public String memberCenteAddItemPost(
+            @ModelAttribute Item item,
+            @RequestParam(required = false) List<Integer> transportationMethods,
+            @RequestParam(name = "files", required = false) MultipartFile[] files) throws IOException {
+
+        // 呼叫 Service 處理新增邏輯
+        itemService.addItem(item, transportationMethods, files);
+        return "redirect:/memberCenter/item/itemList";
+    }
+
+    // 顯示編輯商品頁面
+    @GetMapping("/memberCenter/item/editItem")
+    public String memberCenteEditItem(@RequestParam Integer id, Model model, HttpSession session) {
+        Item item = itemService.findItemById(id);
+        LoginBean user = (LoginBean) session.getAttribute("user");
+        List<ItemPhoto> sortedPhotos = itemPhotoRepo.findByItem_ItemIdOrderBySortOrderAsc(id);
+        for(ItemPhoto i : sortedPhotos) {
+        System.out.println(i.getId());
+        }
+        // 將圖片轉換為 Base64 格式
+        List<String> base64Photos = sortedPhotos.stream()
+                .map(photo -> "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(photo.getPhotoFile()))
+                .collect(Collectors.toList());
+ 
+        model.addAttribute("item", item);
+        model.addAttribute("userId",user.getUserId());
+        model.addAttribute("base64Photos", base64Photos);
+        model.addAttribute("categoryList", categoryService.findAll());
+        model.addAttribute("brandList", brandService.findAll());
+        model.addAttribute("transportationList", transportationRepo.findAll());
+        return "/item/userItemEditView";
+    }
+
+
+    // 編輯商品
+    @PostMapping("/memberCenter/item/editItemPost")
+    public String memberCenteeditItemPost(
+            @ModelAttribute Item item,
+            @RequestParam(required = false) List<Integer> transportationMethods,
+            @RequestParam(name = "files", required = false) MultipartFile[] files) throws IOException {
+    	
+    	
+        // 呼叫 Service 處理編輯邏輯
+        itemService.updateItem(item, transportationMethods, files);
+        return "redirect:/memberCenter/item/itemList";
+    }
+	
 
 }

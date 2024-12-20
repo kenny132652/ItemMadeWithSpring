@@ -48,7 +48,9 @@ public class ItemService {
 	@Autowired
 	private TransportationRepository transportationRepo;
 	
-	
+	public List<Item> findAllActiveItemOwnByUserId(int id) {
+		return itemRepo.findAllActiveItemOwnByUserId(id);
+	}
 
 	public List<Item> findAllItem() {
 		return itemRepo.findAll();
@@ -160,4 +162,5 @@ public class ItemService {
 		itemRepo.deleteById(id);
 
 	}
+
 }

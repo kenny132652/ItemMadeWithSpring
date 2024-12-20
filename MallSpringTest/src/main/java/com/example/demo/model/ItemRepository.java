@@ -11,5 +11,7 @@ public interface ItemRepository extends JpaRepository<Item, Integer>{
 	@Query("select i.itemId from Item i where i.userInfo.userId = :id")
 	List<Integer> findItemByUserId(@Param("id") Integer id);
 
-	
+	@Query("select i from Item i where i.itemDeleteStatus = false and i.userInfo.userId = :id")
+	List<Item> findAllActiveItemOwnByUserId(@Param("id") Integer id);
+
 }
