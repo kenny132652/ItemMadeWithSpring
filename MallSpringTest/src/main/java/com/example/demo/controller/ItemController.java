@@ -196,6 +196,7 @@ public class ItemController {
         try {
             Item item=itemService.findItemById(id);
             item.setItemDeleteStatus(true);
+            itemRepo.save(item);
             return "redirect:/memberCenter/item/itemList";
         } catch (Exception e) {
             System.out.println("刪除商品失敗: " + e.getMessage());
@@ -206,7 +207,8 @@ public class ItemController {
     // 顯示新增商品頁面
     @GetMapping("/memberCenter/item/addItem")
     public String memberCenteAddItem(Model model, HttpSession session) {
-        LoginBean user = (LoginBean) session.getAttribute("user");
+//        LoginBean user = (LoginBean) session.getAttribute("user");
+        UserInfo user = userInfoRepo.getById(1);
         model.addAttribute("userId",user.getUserId());
         model.addAttribute("item", new Item());
         model.addAttribute("categoryList", categoryService.findAll());
@@ -231,7 +233,8 @@ public class ItemController {
     @GetMapping("/memberCenter/item/editItem")
     public String memberCenteEditItem(@RequestParam Integer id, Model model, HttpSession session) {
         Item item = itemService.findItemById(id);
-        LoginBean user = (LoginBean) session.getAttribute("user");
+        UserInfo user = userInfoRepo.getById(1);
+//        LoginBean user = (LoginBean) session.getAttribute("user");
         List<ItemPhoto> sortedPhotos = itemPhotoRepo.findByItem_ItemIdOrderBySortOrderAsc(id);
         for(ItemPhoto i : sortedPhotos) {
         System.out.println(i.getId());
